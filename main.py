@@ -1,6 +1,5 @@
 from time import sleep
 from scraper import WebScraper, WebScraperUser
-from fileWriter import FileWriter
 
 
 def run(scraper: WebScraper):
@@ -22,7 +21,7 @@ def run(scraper: WebScraper):
     videos_channel_name = soup_
 
     videos_data = [f"%VIDEO = {video}\n%CANALE= {channel}" for video, channel in zip(videos_meta, videos_channel_name)]
-    FileWriter("soup.html").save(videos_data)
+    scraper.save(videos_data)
 
 if __name__ == "__main__":
     user = WebScraperUser(run=run, headless=False)
