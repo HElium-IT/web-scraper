@@ -141,7 +141,7 @@ class WebScraper:
             webelements.extend(elements)
         return webelements
 
-    def filter_elements(self, get_web_elements=False, **kwargs):
+    def filter_elements(self, get_web_elements=True, **kwargs):
         filtered_elements = self.soup_elements
         for key, value in kwargs.items():
             if key in ["_class", "class"]:
@@ -154,9 +154,9 @@ class WebScraper:
         #print(filtered_elements)
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
-        return filtered_elements
+        return filtered_elements, None
 
-    def filter_similar_elements(self, get_web_elements=False, threshold:float=0.2, **kwargs):
+    def filter_similar_elements(self, get_web_elements=True, threshold:float=0.2, **kwargs):
         filtered_elements = self.soup_elements
         for key, value in kwargs.items():
             if key in ["class_", "class"]:
@@ -169,7 +169,7 @@ class WebScraper:
         #print(filtered_elements)
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
-        return filtered_elements
+        return filtered_elements, None
     
     def save(self, file_name:str=None, elements:Union[str, list]=None):
         scraped_dir = os.path.join(os.getcwd(), 'scraped')
