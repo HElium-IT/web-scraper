@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Union
 import requests
@@ -21,19 +22,19 @@ class ChromeDownloader:
             if self.chromedriver_path in os.listdir():
                 os.rmdir(self.chromedriver_path)
                 os.mkdir(self.chromedriver_path)
-                if self.log_level >= 2: print("ChromeDriver folder created")
+                if self.log_level >= 2: log("ChromeDriver folder created")
 
             chrome_version = self._get_chrome_version()
-            if self.log_level >= 2: print("Chrome version detected:", chrome_version)
+            if self.log_level >= 2: log("Chrome version detected:", chrome_version)
 
             chromedriver_version = self._get_compatible_chromedriver_version(chrome_version)
-            if self.log_level >= 2: print("ChromeDriver version detected:", chromedriver_version)
+            if self.log_level >= 2: log("ChromeDriver version detected:", chromedriver_version)
 
             self._download_chromedriver(chromedriver_version)
-            if self.log_level >= 2: print("ChromeDriver downloaded and extracted to", self.chromedriver_path)
+            if self.log_level >= 2: log("ChromeDriver downloaded and extracted to", self.chromedriver_path)
 
         except Exception as e:
-            if self.log_level >= 1: print(f'Error: {e}')
+            if self.log_level >= 1: log(f'Error: {e}')
             raise Exception("Error while trying to download ChromeDriver")
 
     def _get_chrome_version(self):
@@ -41,7 +42,7 @@ class ChromeDownloader:
             chrome_version = os.popen('reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version').read().strip().split(" ")[-1]
             return chrome_version
         except Exception as e:
-            if self.log_level >= 1: print(f'Error: {e}')
+            if self.log_level >= 1: log(f'Error: {e}')
             raise Exception("Chrome not installed, please install Chrome and retry")
 
     def _get_compatible_chromedriver_version(self, chrome_version):
@@ -51,7 +52,7 @@ class ChromeDownloader:
             chromedriver_version = requests.get(url).text.strip()
             return chromedriver_version
         except Exception as e:
-            if self.log_level >= 1: print(f'Error: {e}')
+            if self.log_level >= 1: log(f'Error: {e}')
             raise Exception("Error while trying to fetch compatible ChromeDriver version")
 
     def _download_chromedriver(self, chromedriver_version):
@@ -65,7 +66,7 @@ class ChromeDownloader:
                 zip_ref.extractall(self.chromedriver_path)
             os.remove(chromedriver_zip)
         except Exception as e:
-            if self.log_level >= 1: print(f'Error: {e}')
+            if self.log_level >= 1: log(f'Error: {e}')
             raise Exception("Error while trying to download ChromeDriver")
 
 
@@ -78,38 +79,38 @@ class FileWriter:
     def write_to_file(self, text:str):
         file_path_exists = os.path.exists(self.file_path)
         if file_path_exists:
-            if self.log_level >= 2: print(f"File {self.file_path} already exists.", end=' ')
+            if self.log_level >= 2: log(f"File {self.file_path} already exists.", end=' ')
             if not self.auto_overwrite:
                 confirm = input(f"Do you want to overwrite it? (y/n)")
                 if confirm.lower() != 'y':
                     return
             else:
-                if self.log_level >= 1: print("Overwriting...")
+                if self.log_level >= 1: log("Overwriting...")
 
         backup_file_path = None
         if file_path_exists:
-            if self.log_level >= 2: print(f"Creating backup file {self.file_path}.bak...")
+            if self.log_level >= 2: log(f"Creating backup file {self.file_path}.bak...")
             backup_file_path = self.file_path + ".bak"
             os.rename(self.file_path, backup_file_path)
-            if self.log_level >= 2: print(f"Backup file created.")
+            if self.log_level >= 2: log(f"Backup file created.")
 
         try:
-            if self.log_level >= 2: print(f"Writing file {self.file_path}...")
+            if self.log_level >= 2: log(f"Writing file {self.file_path}...")
             with open(self.file_path, 'w', encoding="utf-8") as file:
                 file.write(text)
-                if self.log_level >= 2: print(f"Written successfully.")
+                if self.log_level >= 2: log(f"Written successfully.")
         except Exception as e:
-            if self.log_level >= 1: print(f"Error: {e}")
+            if self.log_level >= 1: log(f"Error: {e}")
             if backup_file_path:
                 os.rename(backup_file_path, self.file_path)
-                if self.log_level >= 1: print(f"File restored from backup.")
+                if self.log_level >= 1: log(f"File restored from backup.")
             else:
                 os.remove(self.file_path)
             raise
         finally:
             if backup_file_path:
                 os.remove(backup_file_path)
-                if self.log_level >= 1: print(f"Backup file removed.")
+                if self.log_level >= 1: log(f"Backup file removed.")
 
     def save(self, elements: Union[str, list]):
         output:str
@@ -184,3 +185,12 @@ class LocalStorageCRUD:
     def update(self, key, value):
         self.delete_local_storage(key)
         self.add_local_storage(key, value)
+
+
+logging.basicConfig(filename="logs.log",
+                    filemode='a',
+                    format='%(asctime)s, %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO)
+def log(string):
+    logging.log(logging.INFO, string)
