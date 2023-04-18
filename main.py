@@ -1,6 +1,6 @@
-from time import sleep
 import time
 from scraper import WebScraper, WebScraperUser
+from utils import log
 
 
 def run(scraper: WebScraper):
