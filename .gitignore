@@ -1,2 +1,4 @@
 /scraped
 /__pycache__
+/chrome
+*.log

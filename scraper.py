@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
-from utils import ChromeDownloader, FileWriter, CookiesCRUD#, LocalStorageCRUD
+from utils import log, ChromeDownloader, FileWriter, CookiesCRUD#, LocalStorageCRUD
 
 class WebScraperUser:
     """
@@ -23,7 +23,7 @@ class WebScraperUser:
             scraper.get('https://www.google.com')
             scraper.find_element('input').send_keys('Hello World')
             scraper.find_element('input').send_keys(Keys.ENTER)
-            print(scraper.find_element('h3').text)
+            log(scraper.find_element('h3').text)
         WebScraperUser(run)
     
     """
@@ -33,9 +33,9 @@ class WebScraperUser:
             run(self.scraper)
             pass
         except (Exception) as e:
-            traceback.print_exception(type(e), e, e.__traceback__)
+            traceback.log_exception(type(e), e, e.__traceback__)
         except (KeyboardInterrupt):
-            print('Interrupted')
+            log('Interrupted')
         finally:
             self.scraper.quit()
 
@@ -70,36 +70,36 @@ class WebScraper:
         self.log_level = log_level
         if headless:
             chrome_options.add_argument("--headless")
-            if self.log_level >= 2: print('Running in headless mode')
+            if self.log_level >= 2: log('Running in headless mode')
 
         chromedriver_path = os.path.join(os.path.dirname(__file__), 'chrome', 'chromedriver.exe')
         for i in range(3):
             try:
                 self.driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
                 self.driver.maximize_window()
-                print('Chrome driver started')
+                log('Chrome driver started')
                 self.cookieManager = CookiesCRUD(driver=self.driver) 
                 #self.localStorageManager = LocalStorageCRUD(driver=self.driver)
                 break
-            except SessionNotCreatedException:
+            except Exception:
                 
-                if self.log_level >= 1: print("Chromedriver not found, downloading...")
+                if self.log_level >= 1: log("Chromedriver not found, downloading...")
                 try:
                     ChromeDownloader(log_level=log_level).run()
-                    if self.log_level >= 1: print("Chromedriver downloaded, retrying...")
+                    if self.log_level >= 1: log("Chromedriver downloaded, retrying...")
                 except Exception as e:
-                    if self.log_level >= 1: print(f"Error: {e}")
-                    if self.log_level >= 1: print("Chromedriver download failed, retrying...")
+                    if self.log_level >= 1: log(f"Error: {e}")
+                    if self.log_level >= 1: log("Chromedriver download failed, retrying...")
 
                 if i == 2:
                     raise Exception("Chromedriver downloading failed. Download manually and retry.")
 
     def quit(self):
-        if self.log_level >= 2: print('Closing Chrome driver')
+        if self.log_level >= 2: log('Closing Chrome driver')
         self.driver.quit()
 
     def navigate_to(self, url):
-        if self.log_level >= 2: print(f'Navigating to {url}')
+        if self.log_level >= 2: log(f'Navigating to {url}')
         self.driver.get(url)
         self.driver_elements = self.driver.find_elements_by_xpath('//*')
         self.soup_elements = BeautifulSoup(self.driver.page_source, 'html.parser').find_all()
@@ -150,8 +150,8 @@ class WebScraper:
             else:
                 key = key.replace("_", "-")
                 filtered_elements = [elem for elem in filtered_elements if elem.has_attr(key) and elem[key] == value]
-        if self.log_level >= 2: print(f"found {len(filtered_elements)} elements with {kwargs}")
-        #print(filtered_elements)
+        if self.log_level >= 2: log(f"found {len(filtered_elements)} elements with {kwargs}")
+        #log(filtered_elements)
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
         return filtered_elements, None
@@ -165,8 +165,8 @@ class WebScraper:
             else:
                 filtered_elements = [elem for elem in filtered_elements if elem.has_attr(key) and Levenshtein.distance(value, elem[key])/len(elem[key]) <= threshold]
         
-        if self.log_level >= 2: print(f"found {len(filtered_elements)} similar elements with {kwargs}")
-        #print(filtered_elements)
+        if self.log_level >= 2: log(f"found {len(filtered_elements)} similar elements with {kwargs}")
+        #log(filtered_elements)
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
         return filtered_elements, None
@@ -180,8 +180,8 @@ class WebScraper:
         try:
             FileWriter(file_path=file_path, log_level=self.log_level).save(elements)
         except Exception as e:
-            if self.log_level >= 1: print(f"Error: {e}")
-            if self.log_level >= 1: print("Saving failed")
+            if self.log_level >= 1: log(f"Error: {e}")
+            if self.log_level >= 1: log("Saving failed")
 
 
 class NotFoundError(Exception):
