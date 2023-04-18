@@ -79,7 +79,7 @@ class FileWriter:
     def write_to_file(self, text:str):
         file_path_exists = os.path.exists(self.file_path)
         if file_path_exists:
-            if self.log_level >= 2: log(f"File {self.file_path} already exists.", end=' ')
+            if self.log_level >= 2: log(f"File {self.file_path} already exists.")
             if not self.auto_overwrite:
                 confirm = input(f"Do you want to overwrite it? (y/n)")
                 if confirm.lower() != 'y':
@@ -192,5 +192,6 @@ logging.basicConfig(filename="logs.log",
                     format='%(asctime)s, %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',
                     level=logging.INFO)
-def log(string):
-    logging.log(logging.INFO, string)
+def log(*string):
+    #logging.log(logging.INFO, string)
+    print(" ".join(string))

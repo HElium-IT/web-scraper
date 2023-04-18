@@ -32,8 +32,8 @@ class WebScraperUser:
             self.scraper = WebScraper(*args, **kwargs)
             run(self.scraper)
             pass
-        except (Exception) as e:
-            traceback.log_exception(type(e), e, e.__traceback__)
+        except (Exception) as e: 
+            traceback.print_exception(type(e), e, e.__traceback__)
         except (KeyboardInterrupt):
             log('Interrupted')
         finally:
