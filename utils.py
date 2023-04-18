@@ -21,6 +21,7 @@ class ChromeDownloader:
         try:
             if self.chromedriver_path in os.listdir():
                 os.rmdir(self.chromedriver_path)
+            if self.chromedriver_path not in os.listdir():
                 os.mkdir(self.chromedriver_path)
                 if self.log_level >= 2: log("ChromeDriver folder created")
 
