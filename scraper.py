@@ -17,21 +17,11 @@ class WebScraperUser:
     WebScraperUser class for using WebScraper class in a more user-friendly way.
     To use it, you need to pass a function to the constructor that will use the WebScraper class.
     The function will be called with the WebScraper class as the first argument.
-    
-    Example:
-        def run(scraper):
-            scraper.get('https://www.google.com')
-            scraper.find_element('input').send_keys('Hello World')
-            scraper.find_element('input').send_keys(Keys.ENTER)
-            log(scraper.find_element('h3').text)
-        WebScraperUser(run)
-    
     """
     def __init__(self, run:Callable, *args, **kwargs):
         try:
             self.scraper = WebScraper(*args, **kwargs)
             run(self.scraper)
-            pass
         except (Exception) as e: 
             traceback.print_exception(type(e), e, e.__traceback__)
         except (KeyboardInterrupt):
@@ -102,7 +92,7 @@ class WebScraper:
         if self.log_level >= 2: log(f'Navigating to {url}')
         self.driver.get(url)
         self.driver_elements = self.driver.find_elements_by_xpath('//*')
-        self.soup_elements = BeautifulSoup(self.driver.page_source, 'html.parser').find_all()
+        self.reset_soup()
         
     def enter_value(self, element, value, enter=True):
         try:
@@ -139,10 +129,15 @@ class WebScraper:
             elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
             found_selectors.add(selector)
             webelements.extend(elements)
+        
+        if self.log_level >= 2: log(f"\tfound {len(webelements)} web elements")
         return webelements
 
-    def filter_elements(self, get_web_elements=True, **kwargs):
-        filtered_elements = self.soup_elements
+    def reset_soup(self):
+        self.soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+    def filter_elements(self, get_web_elements=False, keep_soup=False, **kwargs):
+        filtered_elements = self.soup.find_all()
         for key, value in kwargs.items():
             if key in ["_class", "class"]:
                 key = "class"
@@ -152,12 +147,14 @@ class WebScraper:
                 filtered_elements = [elem for elem in filtered_elements if elem.has_attr(key) and elem[key] == value]
         if self.log_level >= 2: log(f"found {len(filtered_elements)} elements with {kwargs}")
         #log(filtered_elements)
+        if keep_soup:
+            self.soup = filtered_elements[0]
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
         return filtered_elements, None
 
-    def filter_similar_elements(self, get_web_elements=True, threshold:float=0.2, **kwargs):
-        filtered_elements = self.soup_elements
+    def filter_similar_elements(self, get_web_elements=False, threshold:float=0.2, keep_soup=False, **kwargs):
+        filtered_elements = self.soup
         for key, value in kwargs.items():
             if key in ["class_", "class"]:
                 key = "class"
@@ -167,6 +164,8 @@ class WebScraper:
         
         if self.log_level >= 2: log(f"found {len(filtered_elements)} similar elements with {kwargs}")
         #log(filtered_elements)
+        if keep_soup:
+            self.soup = filtered_elements
         if get_web_elements:
             return filtered_elements, self.get_web_elements(filtered_elements)
         return filtered_elements, None
