@@ -83,7 +83,7 @@ class FileWriter:
         if file_path_exists:
             if self.log_level >= 2: log(f"File {self.file_path} already exists.")
             if not self.auto_overwrite:
-                confirm = input(f"Do you want to overwrite it? (y/n)")
+                confirm = input("Do you want to overwrite it? (y/n)")
                 if confirm.lower() != 'y':
                     return
             else:
@@ -94,25 +94,25 @@ class FileWriter:
             if self.log_level >= 2: log(f"Creating backup file {self.file_path}.bak...")
             backup_file_path = self.file_path + ".bak"
             os.rename(self.file_path, backup_file_path)
-            if self.log_level >= 2: log(f"Backup file created.")
+            if self.log_level >= 2: log("Backup file created.")
 
         try:
             if self.log_level >= 2: log(f"Writing file {self.file_path}...")
             with open(self.file_path, 'w', encoding="utf-8") as file:
                 file.write(text)
-                if self.log_level >= 2: log(f"Written successfully.")
+                if self.log_level >= 2: log("Written successfully.")
         except Exception as e:
             if self.log_level >= 1: log(f"Error: {e}")
             if backup_file_path:
                 os.rename(backup_file_path, self.file_path)
-                if self.log_level >= 1: log(f"File restored from backup.")
+                if self.log_level >= 1: log("File restored from backup.")
             else:
                 os.remove(self.file_path)
             raise
         finally:
             if backup_file_path:
                 os.remove(backup_file_path)
-                if self.log_level >= 1: log(f"Backup file removed.")
+                if self.log_level >= 1: log("Backup file removed.")
 
     def save(self, text_or_elements: Union[str, list]):
         output:str
