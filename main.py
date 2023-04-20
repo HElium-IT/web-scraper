@@ -70,33 +70,40 @@ def run(scraper: WebScraper):
             "price":price
             }
 
-    t = time.time()
-
-    for i in range(100_000):
-        log(f"ITERATION {i+1} |{'-'*100}")
-
+    def gather_enhanced_data(i):
         try:
             navigate_to_page(i)
         except:
-            break
+            return
 
         if i == 0:
             # Accept cookies
             _, elements = scraper.filter_elements(id="sp-cc-rejectall-link", get_web_elements=True)
             scraper.click_button(elements[0])
 
-        t_i = time.time()
         divs = get_deals_divs()
         # scraper.save(f"divs{i}.txt", [str(div) for div in divs])
 
-        items = [get_deal_data(div) for div in divs]
+        items = [get_deal_data(div) for div in divs[:1]]
         # scraper.save(f"items{i}.txt", items)
 
         enhanced_items = [item | get_deal_data_2(item['link']) for item in items]
         scraper.save(f"enhanced_items{i}.txt", enhanced_items)
 
-        log(f"\tDelta Time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - t_i))}\
-            \tTotal time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - t))}")
+
+    total_t = time.time()
+    delta_t = None
+    i = 0
+
+    while True:
+        if delta_t is None or time.strftime("%M:%S", time.gmtime(time.time() - delta_t)) == '05:00':
+            log(f"ITERATION {i+1} |{'-'*100}")
+            gather_enhanced_data(i)
+            log(f"\tDelta Time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - delta_t))}\
+                \tTotal time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - total_t))}")
+            delta_t = time.time()
+            i += 1
+        time.sleep(0.8)
         
 
 if __name__ == "__main__":
