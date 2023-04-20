@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Union
@@ -113,17 +114,15 @@ class FileWriter:
                 os.remove(backup_file_path)
                 if self.log_level >= 1: log(f"Backup file removed.")
 
-    def save(self, elements: Union[str, list]):
+    def save(self, text_or_elements: Union[str, list]):
         output:str
-        if isinstance(elements, str):
-            output = elements
-        elif isinstance(elements, list):
-            if len(elements) == 0:
+        if isinstance(text_or_elements, str):
+            output = text_or_elements
+        elif isinstance(text_or_elements, list):
+            if len(text_or_elements) == 0:
                 output = ""
-            if isinstance(elements[0], str):
-                output = "\n".join(elements)
-            else:
-                output = "\n".join([str(element) for element in elements])
+            #output = "\n".join([json.dumps(element, sort_keys=True, indent=4) for element in text_or_elements])
+            output = json.dumps(text_or_elements, indent=2, skipkeys=True)
         
         self.write_to_file(output)
 
@@ -194,5 +193,5 @@ logging.basicConfig(filename="logs.log",
                     datefmt='%H:%M:%S',
                     level=logging.INFO)
 def log(*string):
-    #logging.log(logging.INFO, string)
-    print(" ".join(string))
+    logging.log(logging.INFO, " ".join(string))
+    #print(" ".join(string))
