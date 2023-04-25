@@ -21,8 +21,22 @@ def run(scraper: WebScraper):
 
     def get_deal_data(div):
         label = div.get('aria-label', "NaN")
-
-        scraper.filter_elements(keep_soup=True, data_deal_id=div.attrs['data-deal-id'])
+        try:
+            data_deal_id = div.attrs['data-deal-id']
+            if data_deal_id in ids:
+                already_visited = True
+            else:
+                already_visited = False
+                ids.add(data_deal_id)
+            scraper.filter_elements(keep_soup=True, data_deal_id=data_deal_id)
+        except:
+            return {
+                "label":label,
+                "percentage":"NaN",
+                "text":"NaN",
+                "link": "NaN",
+                "already_visited": already_visited
+                }
         
         soup, _ = scraper.filter_elements(_class="DealLink-module__dealLink_3v4tPYOP4qJj9bdiy0xAT")
         try:
@@ -47,12 +61,19 @@ def run(scraper: WebScraper):
             "label":label,
             "percentage":percentage,
             "text":text,
-            "link": link
+            "link": link,
+            "already_visited": already_visited
             }
 
     def get_deal_data_2(link):
-        scraper.navigate_to(link)
-
+        try:
+            scraper.navigate_to(link)
+        except:
+            return {
+                "rating":"NaN",
+                "price":"NaN"
+                }
+        
         soup, _ = scraper.filter_elements(id="acrCustomerReviewText", _class="a-size-base")
         try:
             rating = soup[0].text
@@ -71,10 +92,7 @@ def run(scraper: WebScraper):
             }
 
     def gather_enhanced_data(i):
-        try:
-            navigate_to_page(i)
-        except:
-            return
+        navigate_to_page(i)
 
         if i == 0:
             # Accept cookies
@@ -84,7 +102,7 @@ def run(scraper: WebScraper):
         divs = get_deals_divs()
         # scraper.save(f"divs{i}.txt", [str(div) for div in divs])
 
-        items = [get_deal_data(div) for div in divs[:1]]
+        items = [get_deal_data(div) for div in divs]
         # scraper.save(f"items{i}.txt", items)
 
         enhanced_items = [item | get_deal_data_2(item['link']) for item in items]
@@ -94,12 +112,23 @@ def run(scraper: WebScraper):
     total_t = time.time()
     delta_t = None
     i = 0
+    max_failed = 3
+    ids = set()
 
     while True:
-        if delta_t is None or time.strftime("%M:%S", time.gmtime(time.time() - delta_t)) == '05:00':
+        if max_failed == 0:
+            log("MAX FAILED REACHED")
+            break
+
+        if delta_t is None or time.strftime("%M:%S", time.gmtime(time.time() - delta_t)) == '00:10':
             log(f"ITERATION {i+1} |{'-'*100}")
-            gather_enhanced_data(i)
-            log(f"\tDelta Time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - delta_t))}\
+            try:
+                gather_enhanced_data(i)
+            except Exception as e:
+                max_failed -= 1
+                log(f"FAILED! ERROR: {e}")
+
+            log(f"\tDelta Time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - (delta_t or total_t)))}\
                 \tTotal time elapsed: {time.strftime('%H:%M:%S', time.gmtime(time.time() - total_t))}")
             delta_t = time.time()
             i += 1
