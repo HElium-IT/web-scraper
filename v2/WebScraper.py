@@ -2,6 +2,7 @@ from typing import Callable, List
 import os
 import traceback
 import logging
+import time
 
 from bs4 import BeautifulSoup
 from bs4.element import PageElement
@@ -23,6 +24,8 @@ class WebScraperUser:
     The function will be called with the WebScraper class as the first argument.
     """
     def __init__(self, run:Callable, *args, **kwargs):
+        starting_time = time.time()
+        Logger.info(f"Starting time {time.strftime('%H:%M:%S', time.gmtime(starting_time))}")
         try:
             self.scraper = WebScraper(*args, **kwargs)
             run(self.scraper)
@@ -31,6 +34,8 @@ class WebScraperUser:
         except (KeyboardInterrupt):
             Logger.info('Interrupted')
         finally:
+            ending_time = time.time()
+            Logger.info(f"Elapsed time: {time.strftime('%H:%M:%S', time.gmtime(ending_time - starting_time))}")
             self.scraper.quit()
 
 class WebScraper:
