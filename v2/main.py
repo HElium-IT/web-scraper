@@ -8,6 +8,7 @@ Logger = logging.getLogger(__name__)
 
 def run(scraper: WebScraper):
     items = dict()
+
     def navigate_to_page(x):
         Logger.info(f"Navigating to deals page {x}")
         deals_link = "https://www.amazon.it/deals?deals-widget=%257B%2522version%2522%253A1%252C%2522viewIndex%2522%253A0%252C%2522presetId%2522%253A%2522deals-collection-lightning-deals%2522%252C%2522dealType%2522%253A%2522LIGHTNING_DEAL%2522%252C%2522sorting%2522%253A%2522BY_DISCOUNT_ASCENDING%2522%257D"
@@ -25,18 +26,21 @@ def run(scraper: WebScraper):
         
         scraper.get_soup()
     
+
     def get_text(element):
         try:
             return element.text
         except:
             return "NaN"
     
+
     def get_attr(element, key):
         try:
             return element.attrs[key]
         except:
             return "NaN"
     
+
     def gather_page_informations(x):
         navigate_to_page(x)
         deals_divs = scraper.find_soup_elements("div", {'class':"DealCardDynamic-module__card_byn3MbtqkJHcIi783X3tE"})
@@ -89,14 +93,13 @@ def run(scraper: WebScraper):
                 with open(f"scraped/data_{x}.txt", "a") as f:
                     print(json.dumps(item, indent= 2), file=f)
     
-    starting_time = time.time()
-    Logger.info(f"Starting time {time.strftime('%H:%M:%S', time.gmtime(starting_time))}")
 
     for x in range(100):
-        gather_page_informations(x)
+        try:
+            gather_page_informations(x)
+        except Exception as e:
+            Logger.error(f"Error while gathering page informations [{x}]: {e}")
 
-    ending_time = time.time()
-    Logger.info(f"Elapsed time: {time.strftime('%H:%M:%S', time.gmtime(ending_time - starting_time))}")
     while True:
         pass
 
