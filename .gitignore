@@ -1,4 +1,4 @@
-/scraped
-/__pycache__
-/chrome
-*.log
+**/scraped
+**/__pycache__
+**/chrome
+**.log
