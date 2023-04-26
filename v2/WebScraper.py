@@ -1,14 +1,18 @@
-from typing import Callable
+from typing import Callable, List
 import os
 import traceback
 import logging
+
 from bs4 import BeautifulSoup
+from bs4.element import PageElement
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 from ChromeDownloader import ChromeDownloader
-
 
 Logger = logging.getLogger(__name__)
 
@@ -53,6 +57,8 @@ class WebScraper:
     default_options.add_argument("--disable-gpu")
     default_options.add_argument("--no-sandbox")
     default_options.add_argument("--disable-dev-shm-usage")
+    driver: webdriver.Chrome
+    soup: BeautifulSoup
     
     
     def __init__(self, chrome_options:Options=default_options, headless:bool=True):
@@ -88,7 +94,67 @@ class WebScraper:
     def navigate_to(self, url:str):
         self.driver.get(url)
         Logger.info(f'Navigated to {url}')
+        self.get_soup()
     
     def get_soup(self):
         self.soup = BeautifulSoup(self.driver.page_source, 'html.parser')
         return self.soup
+
+    def find_driver_element(self, by, value) -> WebElement:
+        if by == "XPATH":
+            by = By.XPATH
+        elif by == "CSS_SELECTOR":
+            by = By.CSS_SELECTOR
+        elif by == "CLASS_NAME":
+            by = By.CLASS_NAME
+        elif by == "ID":
+            by = By.ID
+        elif by == "LINK_TEXT":
+            by = By.LINK_TEXT
+        elif by == "NAME":
+            by = By.NAME
+        elif by == "PARTIAL_LINK_TEXT":
+            by = By.PARTIAL_LINK_TEXT
+        elif by == "TAG_NAME":
+            by = By.TAG_NAME
+        
+        return self.driver.find_element(by, value)
+    
+    def find_driver_elements(self, by, value) -> List[WebElement]:
+        if by == "XPATH":
+            by = By.XPATH
+        elif by == "CSS_SELECTOR":
+            by = By.CSS_SELECTOR
+        elif by == "CLASS_NAME":
+            by = By.CLASS_NAME
+        elif by == "ID":
+            by = By.ID
+        elif by == "LINK_TEXT":
+            by = By.LINK_TEXT
+        elif by == "NAME":
+            by = By.NAME
+        elif by == "PARTIAL_LINK_TEXT":
+            by = By.PARTIAL_LINK_TEXT
+        elif by == "TAG_NAME":
+            by = By.TAG_NAME
+
+        return self.driver.find_elements(by, value)
+
+    def find_soup_element(self, tag=None, attrs=None, element=False) -> PageElement:
+        if element:
+            return element.find(tag, attrs)
+        return self.soup.find(tag, attrs)
+
+    def find_soup_elements(self, tag=None, attrs=None, element=False) -> List[PageElement]:
+        if element:
+            return element.find_all(tag, attrs)
+        return self.soup.find_all(tag, attrs)
+
+    def click_driver_element(self, element):
+        element.click()
+    
+    def enter_value_driver_element(self, element, value, enter=True):
+        element.clear()
+        element.send_keys(value)
+        if enter:
+            element.send_keys(Keys.ENTER)
