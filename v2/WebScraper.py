@@ -30,7 +30,7 @@ class WebScraperUser:
             self.scraper = WebScraper(*args, **kwargs)
             run(self.scraper)
         except (Exception) as e: 
-            traceback.print_exception(type(e), e, e.__traceback__)
+            Logger.error(f"Error: {e} \nTraceback:{traceback.format_exc()}")
         except (KeyboardInterrupt):
             Logger.info('Interrupted')
         finally:
@@ -106,44 +106,10 @@ class WebScraper:
         return self.soup
 
     def find_driver_element(self, by, value) -> WebElement:
-        if by == "XPATH":
-            by = By.XPATH
-        elif by == "CSS_SELECTOR":
-            by = By.CSS_SELECTOR
-        elif by == "CLASS_NAME":
-            by = By.CLASS_NAME
-        elif by == "ID":
-            by = By.ID
-        elif by == "LINK_TEXT":
-            by = By.LINK_TEXT
-        elif by == "NAME":
-            by = By.NAME
-        elif by == "PARTIAL_LINK_TEXT":
-            by = By.PARTIAL_LINK_TEXT
-        elif by == "TAG_NAME":
-            by = By.TAG_NAME
-        
-        return self.driver.find_element(by, value)
+        return self.driver.find_element(filter_by(by), value)
     
     def find_driver_elements(self, by, value) -> List[WebElement]:
-        if by == "XPATH":
-            by = By.XPATH
-        elif by == "CSS_SELECTOR":
-            by = By.CSS_SELECTOR
-        elif by == "CLASS_NAME":
-            by = By.CLASS_NAME
-        elif by == "ID":
-            by = By.ID
-        elif by == "LINK_TEXT":
-            by = By.LINK_TEXT
-        elif by == "NAME":
-            by = By.NAME
-        elif by == "PARTIAL_LINK_TEXT":
-            by = By.PARTIAL_LINK_TEXT
-        elif by == "TAG_NAME":
-            by = By.TAG_NAME
-
-        return self.driver.find_elements(by, value)
+        return self.driver.find_elements(filter_by(by), value)
 
     def find_soup_element(self, tag=None, attrs=None, element=False) -> PageElement:
         if element:
@@ -163,3 +129,21 @@ class WebScraper:
         element.send_keys(value)
         if enter:
             element.send_keys(Keys.ENTER)
+
+def filter_by(by:str):
+    if by == "XPATH":
+        return By.XPATH
+    if by == "CSS_SELECTOR":
+        return By.CSS_SELECTOR
+    if by == "CLASS_NAME":
+        return By.CLASS_NAME
+    if by == "ID":
+        return By.ID
+    if by == "LINK_TEXT":
+        return By.LINK_TEXT
+    if by == "NAME":
+        return By.NAME
+    if by == "PARTIAL_LINK_TEXT":
+        return By.PARTIAL_LINK_TEXT
+    if by == "TAG_NAME":
+        return By.TAG_NAME
