@@ -97,7 +97,6 @@ class WebScraper:
     def enter_value(self, element, value, enter=True):
         try:
             element.clear()
-            element
             element.send_keys(value)
             if enter:
                 element.send_keys(Keys.ENTER)
