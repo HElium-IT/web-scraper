@@ -48,25 +48,30 @@ def run(scraper: WebScraper):
             label = get_attr(div, 'aria-label')
             if label == "Nan":
                 continue
+
+            label = label [9:]    
+            if label in items:
+                continue
             
-            label = label[9:]
-
-            deal_label_1 = get_text(scraper.find_soup_element(None, {'class':"BadgeAutomatedLabel-module__badgeAutomatedLabel_2Teem9LTaUlj6gBh5R45wd"}, div))
-            deal_label_2 = get_text(scraper.find_soup_element(None, {'class': "DealMessaging-module__dealMessaging_1EIwT6BUaB6vCKvPVEbAEV"}, div))
-            link = get_attr(scraper.find_soup_element('a', {'class':"DealCardDynamic-module__linkOutlineOffset_2XU8RDGmNg2HG1E-ESseNq"}, div), 'href')
-
-            items[label] = {
-                "label": label,
-                "deal_label_1": deal_label_1,
-                "deal_label_2": deal_label_2,
-                "link": link
+            item = {
+                'label':label
             }
-            to_gather.append(label)
+            items[label] = item
+            try:
+                item['link'] = get_attr(scraper.find_soup_element('a', {'class':"DealCardDynamic-module__linkOutlineOffset_2XU8RDGmNg2HG1E-ESseNq"}, div), 'href')
+                item['deal_label_1'] = get_text(scraper.find_soup_element(None, {'class':"BadgeAutomatedLabel-module__badgeAutomatedLabel_2Teem9LTaUlj6gBh5R45wd"}, div))
+                item['deal_label_2'] = get_text(scraper.find_soup_element(None, {'class': "DealMessaging-module__dealMessaging_1EIwT6BUaB6vCKvPVEbAEV"}, div))
+            except Exception as e:
+                Logger.error(f"Error while gathering basic informations [{label}]: {e}")
+                item['error'] = True
+            finally:
+                to_gather.append(label)
 
-        Logger.info("Gathering more informations")
-        with open(f"scraped/data_{x}.txt", "w") as f:
-            for label in to_gather:
-                item = items[label]
+        Logger.info("Gathering advanced informations")
+        for label in to_gather:
+            item = items[label]
+
+            try:
                 Logger.info(f"Navigating to {label}")
                 # Navigate to deal link
                 scraper.navigate_to(item['link'])
@@ -75,8 +80,14 @@ def run(scraper: WebScraper):
                 coupon_badge = scraper.find_soup_element('i', {'class':"newCouponBadge"})
                 if coupon_badge is not None:
                     item['coupon'] = True #get_text(scraper.find_soup_element('label', None, coupon_badge))
-                
-                print(json.dumps(item, indent= 2), file=f)
+
+            except Exception as e:
+                Logger.error(f"Error while gathering advanced informations [{label}]: {e}")
+                item['error'] = True
+            finally:
+
+                with open(f"scraped/data_{x}.txt", "a") as f:
+                    print(json.dumps(item, indent= 2), file=f)
     
     starting_time = time.time()
     Logger.info(f"Starting time {time.strftime('%H:%M:%S', time.gmtime(starting_time))}")
@@ -90,4 +101,4 @@ def run(scraper: WebScraper):
         pass
 
 if __name__ == "__main__":
-    user = WebScraperUser(run=run, headless=False)
+    user = WebScraperUser(run=run, headless=True)
